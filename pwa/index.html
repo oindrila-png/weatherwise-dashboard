@@ -28,6 +28,11 @@
           <label class="switch"><input id="live-mode" type="checkbox" checked><span></span> Live Open-Meteo data</label>
           <span id="data-status" class="pill">Ready</span>
         </div>
+        <div class="preview-row" aria-label="Preview weather animations">
+          <button class="preview-button" data-preview="rain" type="button">Preview rain</button>
+          <button class="preview-button" data-preview="sun" type="button">Preview sun</button>
+          <button class="preview-button" data-preview="storm" type="button">Preview storm</button>
+        </div>
         <p id="status" class="status" role="status">Live weather is on. Turn it off to explore demo conditions.</p>
       </section>
 
@@ -85,6 +90,6 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
   </body>
 </html>

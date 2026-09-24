@@ -45,6 +45,8 @@ h1, h2, p { margin-top: 0; }
 .mode-row { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: .8rem; }
 .switch { display: flex; align-items: center; gap: .5rem; color: #12355b; font-size: .85rem; letter-spacing: normal; text-transform: none; }
 .switch input { width: auto; accent-color: #087e8b; }
+.preview-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+.preview-button { padding: .5rem .7rem; color: #12355b !important; background: #eef4f8 !important; font-size: .8rem; }
 .pill { border-radius: 999px; padding: .25rem .65rem; color: #087e8b; background: #d9edf0; font-size: .75rem; font-weight: 700; }
 .alerts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; }
 .alert-card { display: flex; gap: .7rem; align-items: flex-start; padding: 1rem; border: 1px solid #d9e5eb; border-radius: 1rem; background: #fff; box-shadow: 0 8px 24px #12355b0d; }

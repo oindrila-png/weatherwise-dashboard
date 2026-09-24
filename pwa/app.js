@@ -74,6 +74,17 @@ function updateEffects() {
     `<i style="--i:${index}"></i>`).join("");
 }
 
+function previewWeather(kind) {
+  const previews = {
+    rain: { weatherCode: 63, temperature: 24, rain: 80, precipitation: 8, personality: "Rain animation preview" },
+    sun: { weatherCode: 0, temperature: 31, rain: 0, precipitation: 0, personality: "Sun animation preview" },
+    storm: { weatherCode: 95, temperature: 27, rain: 70, precipitation: 12, personality: "Storm animation preview" },
+  };
+  weather = { ...weather, ...previews[kind], name: "Animation preview" };
+  renderWeather("demo");
+  setStatus(`${kind[0].toUpperCase()}${kind.slice(1)} animation preview is active.`);
+}
+
 function updateAlerts() {
   const alerts = [
     ["cyclone-alert", weather.wind >= 17, "Strong winds detected — postpone exposed coastal plans.", "No cyclone signal in the available forecast."],
@@ -176,6 +187,9 @@ if ("serviceWorker" in navigator) {
 $("check-weather").addEventListener("click", checkWeather);
 $("live-mode").addEventListener("change", checkWeather);
 $("activity").addEventListener("change", updateActivity);
+document.querySelectorAll("[data-preview]").forEach((button) => {
+  button.addEventListener("click", () => previewWeather(button.dataset.preview));
+});
 $("save-search").addEventListener("click", async () => {
   if (!supabaseClient) {
     setStatus("Database is not connected yet. Complete the Supabase setup first.");
