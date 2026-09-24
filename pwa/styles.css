@@ -8,20 +8,23 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 .app-shell { width: min(720px, 100%); margin: 0 auto; padding: 1rem; }
-.hero { position: relative; overflow: hidden; color: white; background: linear-gradient(120deg, #12355b, #087e8b); border-radius: 1.25rem; padding: 2rem; margin-bottom: 1rem; }
+.hero { position: relative; min-height: 170px; overflow: hidden; color: white; background: linear-gradient(120deg, #12355b, #087e8b); border-radius: 1.25rem; padding: 2rem; margin-bottom: 1rem; }
 .brand { display: flex; align-items: center; gap: .6rem; font-size: 1.8rem; font-weight: 800; }
 .brand img { width: 2.2rem; height: 2.2rem; }
 .hero p { margin-bottom: 0; opacity: .9; }
-.scene { position: absolute; inset: 0; pointer-events: none; opacity: .7; }
+.scene { position: absolute; inset: 0; pointer-events: none; opacity: .9; }
 .scene i { position: absolute; display: block; }
 .scene-sun:before, .scene-heat:before { content: "☀"; position: absolute; right: 12%; top: 12%; color: #ffd166; font-size: 5rem; animation: pulse 3s infinite; }
 .scene-clouds:before { content: "☁"; position: absolute; right: 10%; top: 10%; color: #b7d6df; font-size: 5rem; animation: drift 7s infinite alternate ease-in-out; }
-.scene-rain i, .scene-storm i { left: calc(var(--i) * 6%); top: -10%; width: 2px; height: 22px; background: #b8eff4; transform: rotate(18deg); animation: fall 1s linear infinite; animation-delay: calc(var(--i) * -.12s); }
+.scene-rain:after, .scene-storm:after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(105deg, transparent 0 18px, #b8eff4 19px 21px, transparent 22px 38px); opacity: .55; animation: rain-sweep .7s linear infinite; }
+.scene-rain i, .scene-storm i { left: calc(var(--i) * 6%); top: -10%; width: 3px; height: 28px; background: #d4fbff; transform: rotate(18deg); animation: fall .8s linear infinite; animation-delay: calc(var(--i) * -.12s); }
 .scene-snow i { left: calc(var(--i) * 6%); top: -10%; color: white; width: 8px; height: 8px; border-radius: 50%; animation: fall 3s linear infinite; animation-delay: calc(var(--i) * -.2s); }
-.scene-storm:after { content: "⚡"; position: absolute; right: 20%; top: 20%; color: #ffd166; font-size: 3rem; }
+.scene-storm:before { content: "⚡"; position: absolute; right: 20%; top: 20%; color: #ffd166; font-size: 3rem; z-index: 1; animation: flash 2s infinite; }
 @keyframes fall { to { transform: translate(20px, 180px) rotate(18deg); } }
+@keyframes rain-sweep { to { transform: translateX(38px); } }
 @keyframes drift { to { transform: translateX(-30px); } }
 @keyframes pulse { 50% { transform: scale(1.12); } }
+@keyframes flash { 0%, 45%, 100% { opacity: .25; } 50% { opacity: 1; } }
 .card { background: white; border-radius: 1.1rem; padding: 1.2rem; margin: 1rem 0; box-shadow: 0 8px 24px #12355b12; }
 label, .eyebrow { display: block; color: #567085; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .search-row { display: flex; gap: .6rem; margin-top: .45rem; }
