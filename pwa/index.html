@@ -15,6 +15,7 @@
       <section class="hero">
         <div class="brand"><img src="icons/weatherwise.svg" alt=""> <span>WeatherWise</span></div>
         <p>Plan your day with weather intelligence.</p>
+        <div id="scene" class="scene" aria-hidden="true"></div>
       </section>
 
       <section class="card">
@@ -23,12 +24,16 @@
           <input id="city" type="text" value="Chennai" autocomplete="address-level2">
           <button id="check-weather" type="button">Check weather</button>
         </div>
-        <p class="muted">The installable app currently runs in demo mode. Use the full dashboard for live API weather.</p>
+        <div class="mode-row">
+          <label class="switch"><input id="live-mode" type="checkbox" checked><span></span> Live Open-Meteo data</label>
+          <span id="data-status" class="pill">Ready</span>
+        </div>
+        <p id="status" class="status" role="status">Live weather is on. Turn it off to explore demo conditions.</p>
       </section>
 
       <section id="weather-card" class="card weather-card" aria-live="polite">
         <div>
-          <p class="eyebrow">Demo conditions</p>
+          <p id="data-label" class="eyebrow">Live conditions</p>
           <h1 id="location">Chennai</h1>
           <p id="personality">Comfortable outdoor day</p>
         </div>
@@ -37,7 +42,16 @@
           <span>Humidity <strong id="humidity">68%</strong></span>
           <span>Wind <strong id="wind">3.2 m/s</strong></span>
           <span>Rain <strong id="rain">Low</strong></span>
+          <span>AQI <strong id="aqi">--</strong></span>
         </div>
+      </section>
+
+      <section class="alerts-grid" aria-label="Weather alerts">
+        <article id="cyclone-alert" class="alert-card"><span class="alert-icon">🌀</span><div><h2>Cyclone detector</h2><p>Scanning forecast pressure and wind…</p></div></article>
+        <article id="storm-alert" class="alert-card"><span class="alert-icon">⛈️</span><div><h2>Thunderstorm detector</h2><p>Scanning precipitation and instability…</p></div></article>
+        <article id="flood-alert" class="alert-card"><span class="alert-icon">🌧️</span><div><h2>Flood / heavy rain</h2><p>Scanning rainfall totals…</p></div></article>
+        <article id="heat-alert" class="alert-card"><span class="alert-icon">🌡️</span><div><h2>Heatwave detector</h2><p>Scanning sustained high temperatures…</p></div></article>
+        <article id="aqi-alert" class="alert-card"><span class="alert-icon">🌬️</span><div><h2>Air-quality alert</h2><p>Waiting for air-quality data…</p></div></article>
       </section>
 
       <section class="card">
@@ -62,7 +76,7 @@
         </div>
         <p><strong>Best time:</strong> <span id="best-time">07:00–10:00</span></p>
         <button id="save-search" class="secondary" type="button">Save this plan</button>
-        <p id="status" class="status" role="status"></p>
+        <p id="save-status" class="status" role="status"></p>
       </section>
       <section class="actions">
         <button id="install" class="secondary" type="button" hidden>Install WeatherWise</button>
@@ -71,6 +85,6 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
   </body>
 </html>

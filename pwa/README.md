@@ -13,10 +13,16 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
-The app uses demo weather values in this first safe version. Do not place the
-OpenWeatherMap API key in browser JavaScript: it would be visible to every
-visitor. Live weather will be connected through a secure backend in the next
-phase.
+The app uses the public, keyless Open-Meteo geocoding, forecast, and air-quality
+APIs for live mode. It automatically falls back to demo data when a request
+fails, so the planner remains usable offline or during API outages. The alert
+cards are advisory heuristics, not official emergency warnings; follow local
+authority guidance for cyclone, flood, heat, storm, and pollution decisions.
+
+The mode switch controls live/demo behavior. Live weather includes current
+temperature, humidity, wind, precipitation, a three-day forecast summary, and
+US AQI. Animated rain, sun/heat, clouds, snow, and storm effects are rendered
+locally with CSS and DOM (no external UI packages).
 
 ## Connect Supabase
 
