@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: #eef4f8;
+  color: #12355b;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+.app-shell { width: min(720px, 100%); margin: 0 auto; padding: 1rem; }
+.hero { color: white; background: linear-gradient(120deg, #12355b, #087e8b); border-radius: 1.25rem; padding: 2rem; margin-bottom: 1rem; }
+.brand { display: flex; align-items: center; gap: .6rem; font-size: 1.8rem; font-weight: 800; }
+.brand img { width: 2.2rem; height: 2.2rem; }
+.hero p { margin-bottom: 0; opacity: .9; }
+.card { background: white; border-radius: 1.1rem; padding: 1.2rem; margin: 1rem 0; box-shadow: 0 8px 24px #12355b12; }
+label, .eyebrow { display: block; color: #567085; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.search-row { display: flex; gap: .6rem; margin-top: .45rem; }
+input, select { width: 100%; border: 1px solid #c8d5df; border-radius: .65rem; padding: .75rem; font: inherit; color: inherit; background: white; }
+button, .button { border: 0; border-radius: .65rem; padding: .75rem 1rem; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center; }
+button:not(.secondary) { color: white; background: #087e8b; }
+.secondary { color: #12355b; background: #d9edf0; }
+.weather-card { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; }
+h1, h2, p { margin-top: 0; }
+.temperature { font-size: 3.3rem; font-weight: 800; white-space: nowrap; }
+.temperature sup { font-size: 1.5rem; }
+.metrics { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: .5rem; color: #567085; }
+.metrics strong { display: block; color: #12355b; margin-top: .2rem; }
+.score-row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+.score { display: grid; place-items: center; width: 5rem; height: 5rem; border-radius: 50%; color: white; background: #087e8b; font-size: 1.7rem; font-weight: 800; }
+.score-row h2 { margin-bottom: .25rem; }
+.muted, .status { color: #567085; font-size: .85rem; }
+.actions { display: grid; gap: .7rem; }
+@media (max-width: 520px) {
+  .search-row, .metrics { flex-direction: column; }
+  .search-row { display: grid; }
+  .weather-card { grid-template-columns: 1fr; }
+  .temperature { font-size: 2.8rem; }
+}
