@@ -109,7 +109,12 @@ function renderHourly() {
     list.innerHTML = '<p class="muted">Hourly data is available after a live weather check.</p>';
     return;
   }
-  list.innerHTML = weather.hourly.time.slice(0, 24).map((time, index) => {
+  const now = Date.now();
+  let startIndex = weather.hourly.time.findIndex((time) => new Date(time).getTime() >= now);
+  if (startIndex < 0) startIndex = 0;
+  const endIndex = Math.min(startIndex + 24, weather.hourly.time.length);
+  list.innerHTML = weather.hourly.time.slice(startIndex, endIndex).map((time, offset) => {
+    const index = startIndex + offset;
     const code = weather.hourly.codes[index];
     const icon = code >= 95 ? "⛈️" : [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) ? "🌧️" : [2, 3].includes(code) ? "☁️" : "☀️";
     return `<div class="hour-item"><strong>${formatHour(time)}</strong><span>${icon}</span><span>${Math.round(weather.hourly.temperatures[index])}°</span><small>${Math.round(weather.hourly.rain[index] || 0)}% rain</small></div>`;
