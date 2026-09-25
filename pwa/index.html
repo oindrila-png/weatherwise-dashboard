@@ -18,6 +18,20 @@
         <div id="scene" class="scene" aria-hidden="true"></div>
       </section>
 
+      <section class="card theme-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Atmosphere mode</p>
+            <h2 id="theme-title">Morning glow</h2>
+          </div>
+          <span id="theme-badge" class="pill">Live theme</span>
+        </div>
+        <p id="theme-description" class="theme-description">A soft sunrise palette for a calm start.</p>
+        <div class="theme-swatches" aria-label="Theme colors">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </section>
+
       <section class="card">
         <label for="city">City</label>
         <div class="search-row">
@@ -110,6 +124,31 @@
         <button id="save-search" class="secondary" type="button">Save this plan</button>
         <p id="save-status" class="status" role="status"></p>
       </section>
+
+      <section class="card assistant-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WeatherWise intelligence</p>
+            <h2>Ask Skyla</h2>
+          </div>
+          <span class="ai-badge">AI guide</span>
+        </div>
+        <p class="assistant-intro">Ask about this weather, activities, clothing, rain, air quality, or the best time to go out.</p>
+        <div class="assistant-suggestions" aria-label="Suggested questions">
+          <button type="button" data-question="Can I go for a walk now?">Walk now?</button>
+          <button type="button" data-question="What should I wear?">What should I wear?</button>
+          <button type="button" data-question="Will it rain today?">Rain today?</button>
+        </div>
+        <div id="assistant-messages" class="assistant-messages" aria-live="polite">
+          <div class="assistant-message assistant"><strong>Skyla</strong><span>Hi! I can explain the current weather and help plan your day.</span></div>
+        </div>
+        <form id="assistant-form" class="assistant-form">
+          <input id="assistant-input" type="text" placeholder="Ask Skyla anything about your weather…" autocomplete="off">
+          <button type="submit">Ask</button>
+        </form>
+        <p class="assistant-note">Skyla uses your loaded forecast locally in this app; it is not an emergency service.</p>
+      </section>
+
       <section class="actions">
         <button id="install" class="secondary" type="button" hidden>Install WeatherWise</button>
         <a class="button secondary" href="https://weatherwise-dashboard-susz9m3xtfcejqjbxuvbzt.streamlit.app/" target="_blank" rel="noreferrer">Open full dashboard</a>
@@ -117,6 +156,6 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
   </body>
 </html>

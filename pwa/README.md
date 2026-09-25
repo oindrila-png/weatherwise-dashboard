@@ -29,6 +29,12 @@ Animated rain, sun/heat, clouds, snow, and storm effects are rendered locally
 with CSS and DOM (no external UI packages). The activity planner includes 20
 activities and recommends a useful time window for each.
 
+The **Ask Skyla** assistant is a privacy-friendly local weather guide. It
+answers common questions about the loaded temperature, rain risk, clothing,
+AQI, and activity suitability without exposing an AI or weather-service secret
+in browser code. Its answers are advisory and should not replace official
+emergency guidance.
+
 ## Connect Supabase
 
 1. In Supabase, open **SQL Editor**, paste `supabase-schema.sql`, and click

@@ -95,8 +95,64 @@ function updateEffects() {
 
 function updateTheme() {
   const hour = new Date().getHours();
-  const theme = hour >= 5 && hour < 12 ? "morning" : hour >= 12 && hour < 18 ? "afternoon" : "night";
+  const theme = hour >= 5 && hour < 11 ? "morning" : hour >= 11 && hour < 17 ? "noon" : hour >= 17 && hour < 20 ? "evening" : "night";
   document.body.dataset.theme = theme;
+  const details = {
+    morning: ["Morning glow", "A soft sunrise palette for a calm start.", "Sunrise"],
+    noon: ["Noon clarity", "A bright, focused palette that keeps outdoor plans easy to read.", "Peak daylight"],
+    evening: ["Golden hour", "A warm sunset palette for relaxed travel and outdoor moments.", "Sunset"],
+    night: ["Midnight calm", "A low-glare starry palette designed for comfortable night viewing.", "Night mode"],
+  }[theme];
+  setText("theme-title", details[0]);
+  setText("theme-description", details[1]);
+  setText("theme-badge", details[2]);
+}
+
+function addAssistantMessage(text, type) {
+  const item = document.createElement("div");
+  item.className = `assistant-message ${type}`;
+  const name = document.createElement("strong");
+  name.textContent = type === "user" ? "You" : "Skyla";
+  const content = document.createElement("span");
+  content.textContent = text;
+  item.append(name, content);
+  $("assistant-messages").appendChild(item);
+  item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function answerQuestion(question) {
+  const text = question.toLowerCase();
+  const rainToday = Number(weather.rain || 0);
+  const activity = $("activity").value;
+  const score = calculateScore(activity);
+  if (text.includes("rain") || text.includes("umbrella")) {
+    return rainToday >= 10 || weather.rain >= 60
+      ? `Rain is a real possibility in ${weather.name}. Carry an umbrella and avoid low-lying roads.`
+      : `Rain risk is currently low in ${weather.name}. I would still keep a light layer nearby if you are out for several hours.`;
+  }
+  if (text.includes("wear") || text.includes("clothes") || text.includes("dress")) {
+    if (weather.temperature >= 32) return `It is warm at ${Math.round(weather.temperature)}°C. Choose light, breathable clothing, sunglasses, and water.`;
+    if (weather.temperature <= 16) return `It is cool at ${Math.round(weather.temperature)}°C. Wear a light jacket and closed shoes.`;
+    return `A comfortable outfit should work at ${Math.round(weather.temperature)}°C. Bring a light layer because conditions can change.`;
+  }
+  if (text.includes("walk") || text.includes("run") || text.includes("outdoor") || text.includes("go out")) {
+    return `${activity} suitability is ${score.score}/100 (${score.rating}). The best suggested time is ${bestTimes[activity]}.`;
+  }
+  if (text.includes("air") || text.includes("aqi") || text.includes("pollution")) {
+    return weather.aqi == null ? "Air-quality data is not available yet." : `The current AQI is ${Math.round(weather.aqi)}. ${weather.aqi <= 50 ? "Air quality is good for most people." : weather.aqi <= 100 ? "Sensitive people should consider shorter intense activities." : "Limit strenuous outdoor activity and consider a mask."}`;
+  }
+  if (text.includes("temperature") || text.includes("hot") || text.includes("cold")) {
+    return `It is ${Math.round(weather.temperature)}°C in ${weather.name}, with ${Math.round(weather.humidity)}% humidity and wind around ${Number(weather.wind).toFixed(1)} m/s.`;
+  }
+  if (text.includes("hello") || text.includes("hi")) return "Hello! Ask me about rain, clothing, air quality, temperature, or today's best activity time.";
+  return `In ${weather.name}, conditions are ${weatherLabel(weather.weatherCode).toLowerCase()} at ${Math.round(weather.temperature)}°C. Try asking “Can I go for a walk now?”`;
+}
+
+function askSkyla(question) {
+  const trimmed = question.trim();
+  if (!trimmed) return;
+  addAssistantMessage(trimmed, "user");
+  window.setTimeout(() => addAssistantMessage(answerQuestion(trimmed), "assistant"), 220);
 }
 
 function formatHour(value) {
@@ -297,6 +353,15 @@ $("check-weather").addEventListener("click", checkWeather);
 $("use-location").addEventListener("click", useCurrentLocation);
 $("live-mode").addEventListener("change", checkWeather);
 $("activity").addEventListener("change", updateActivity);
+document.querySelectorAll("[data-question]").forEach((button) => {
+  button.addEventListener("click", () => askSkyla(button.dataset.question));
+});
+$("assistant-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const input = $("assistant-input");
+  askSkyla(input.value);
+  input.value = "";
+});
 document.querySelectorAll("[data-preview]").forEach((button) => {
   button.addEventListener("click", () => previewWeather(button.dataset.preview));
 });
