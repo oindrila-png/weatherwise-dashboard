@@ -24,6 +24,7 @@
           <input id="city" type="text" value="Chennai" autocomplete="address-level2">
           <button id="check-weather" type="button">Check weather</button>
         </div>
+        <button id="use-location" class="secondary location-button" type="button">Use my current location</button>
         <div class="mode-row">
           <label class="switch"><input id="live-mode" type="checkbox" checked><span></span> Live Open-Meteo data</label>
           <span id="data-status" class="pill">Ready</span>
@@ -51,6 +52,28 @@
         </div>
       </section>
 
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Hourly outlook</p>
+            <h2>Next 24 hours</h2>
+          </div>
+          <span id="timezone-label" class="pill">Local time</span>
+        </div>
+        <div id="hourly-list" class="hourly-list" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Ten-day timeline</p>
+            <h2>Past 10 + next 10 days</h2>
+          </div>
+          <span class="pill">History & forecast</span>
+        </div>
+        <div id="daily-list" class="daily-list" aria-live="polite"></div>
+      </section>
+
       <section class="alerts-grid" aria-label="Weather alerts">
         <article id="cyclone-alert" class="alert-card"><span class="alert-icon">🌀</span><div><h2>Cyclone detector</h2><p>Scanning forecast pressure and wind…</p></div></article>
         <article id="storm-alert" class="alert-card"><span class="alert-icon">⛈️</span><div><h2>Thunderstorm detector</h2><p>Scanning precipitation and instability…</p></div></article>
@@ -70,6 +93,10 @@
           <option>Gardening</option>
           <option>Travel</option>
           <option>Outdoor event</option>
+          <option>Yoga</option><option>Bird watching</option><option>Fishing</option>
+          <option>Picnic</option><option>Swimming</option><option>Dog walking</option>
+          <option>Commute</option><option>Shopping</option><option>Laundry</option>
+          <option>Farming</option><option>Construction</option><option>Stargazing</option>
         </select>
         <div class="score-row">
           <div class="score" id="score">86</div>

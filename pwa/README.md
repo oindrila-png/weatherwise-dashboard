@@ -20,9 +20,14 @@ cards are advisory heuristics, not official emergency warnings; follow local
 authority guidance for cyclone, flood, heat, storm, and pollution decisions.
 
 The mode switch controls live/demo behavior. Live weather includes current
-temperature, humidity, wind, precipitation, a three-day forecast summary, and
-US AQI. Animated rain, sun/heat, clouds, snow, and storm effects are rendered
-locally with CSS and DOM (no external UI packages).
+temperature, humidity, wind, precipitation, US AQI, hourly weather for the
+next 24 hours, and a 20-day timeline containing the previous 10 days and the
+next 10 days. The **Use my current location** button requests browser
+geolocation permission and falls back to city search if permission is denied.
+The page theme changes between morning, afternoon, and night automatically.
+Animated rain, sun/heat, clouds, snow, and storm effects are rendered locally
+with CSS and DOM (no external UI packages). The activity planner includes 20
+activities and recommends a useful time window for each.
 
 ## Connect Supabase
 

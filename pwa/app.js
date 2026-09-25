@@ -7,6 +7,24 @@ const rules = {
   Gardening: [15, 30, 8, 85],
   Travel: [12, 32, 10, 90],
   "Outdoor event": [18, 30, 7, 75],
+  Yoga: [16, 30, 6, 80], "Bird watching": [12, 30, 7, 85],
+  Fishing: [12, 30, 8, 85], Picnic: [18, 30, 6, 80],
+  Swimming: [22, 35, 8, 75], "Dog walking": [12, 30, 8, 85],
+  Commute: [8, 34, 12, 95], Shopping: [10, 35, 14, 95],
+  Laundry: [18, 34, 10, 70], Farming: [12, 34, 10, 85],
+  Construction: [10, 32, 9, 75], Stargazing: [5, 30, 5, 70],
+};
+
+const bestTimes = {
+  Walking: "06:30–09:00 or 17:00–19:00", Running: "05:30–08:00",
+  Cycling: "06:00–09:00 or 16:30–19:00", "Outdoor sports": "07:00–10:00",
+  Photography: "06:00–09:00 or 16:00–18:30", Gardening: "06:00–09:00",
+  Travel: "08:00–18:00", "Outdoor event": "17:00–20:00", Yoga: "06:00–08:00",
+  "Bird watching": "05:30–08:30", Fishing: "05:30–09:00", Picnic: "11:00–16:00",
+  Swimming: "10:00–16:00", "Dog walking": "06:30–09:00 or 17:00–19:00",
+  Commute: "07:00–09:00 or 17:00–19:00", Shopping: "10:00–18:00",
+  Laundry: "10:00–15:00", Farming: "06:00–10:00", Construction: "07:00–16:00",
+  Stargazing: "21:00–23:30",
 };
 
 let deferredInstallPrompt;
@@ -47,6 +65,7 @@ function updateActivity() {
   $("recommendation").textContent = result.score >= 75
     ? `Good conditions for ${activity.toLowerCase()}. Stay hydrated.`
     : `Use caution for ${activity.toLowerCase()} and check conditions before leaving.`;
+  $("best-time").textContent = bestTimes[activity] || "Check local conditions";
 }
 
 function setText(id, value) { $(id).textContent = value; }
@@ -72,6 +91,43 @@ function updateEffects() {
   scene.className = `scene scene-${kind}`;
   scene.innerHTML = Array.from({ length: kind === "sun" || kind === "heat" ? 8 : 18 }, (_, index) =>
     `<i style="--i:${index}"></i>`).join("");
+}
+
+function updateTheme() {
+  const hour = new Date().getHours();
+  const theme = hour >= 5 && hour < 12 ? "morning" : hour >= 12 && hour < 18 ? "afternoon" : "night";
+  document.body.dataset.theme = theme;
+}
+
+function formatHour(value) {
+  return new Date(value).toLocaleTimeString([], { hour: "numeric" });
+}
+
+function renderHourly() {
+  const list = $("hourly-list");
+  if (!weather.hourly?.time?.length) {
+    list.innerHTML = '<p class="muted">Hourly data is available after a live weather check.</p>';
+    return;
+  }
+  list.innerHTML = weather.hourly.time.slice(0, 24).map((time, index) => {
+    const code = weather.hourly.codes[index];
+    const icon = code >= 95 ? "⛈️" : [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) ? "🌧️" : [2, 3].includes(code) ? "☁️" : "☀️";
+    return `<div class="hour-item"><strong>${formatHour(time)}</strong><span>${icon}</span><span>${Math.round(weather.hourly.temperatures[index])}°</span><small>${Math.round(weather.hourly.rain[index] || 0)}% rain</small></div>`;
+  }).join("");
+}
+
+function renderDaily() {
+  const list = $("daily-list");
+  if (!weather.daily?.time?.length) {
+    list.innerHTML = '<p class="muted">Daily history and forecast are available after a live weather check.</p>';
+    return;
+  }
+  list.innerHTML = weather.daily.time.map((date, index) => {
+    const past = index < 10;
+    const code = weather.daily.codes[index];
+    const icon = code >= 95 ? "⛈️" : [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) ? "🌧️" : [2, 3].includes(code) ? "☁️" : "☀️";
+    return `<div class="day-item ${past ? "past" : "future"}"><span>${new Date(`${date}T12:00:00`).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span><b>${past ? "Past" : "Forecast"}</b><span>${icon}</span><span>${Math.round(weather.daily.max[index])}° / ${Math.round(weather.daily.min[index])}°</span><small>${Math.round(weather.daily.rain[index] || 0)} mm</small></div>`;
+  }).join("");
 }
 
 function previewWeather(kind) {
@@ -113,6 +169,9 @@ function renderWeather(mode = "live") {
   updateAlerts();
   updateEffects();
   updateActivity();
+  renderHourly();
+  renderDaily();
+  updateTheme();
 }
 
 async function getLiveWeather(city) {
@@ -121,13 +180,14 @@ async function getLiveWeather(city) {
   const geo = await geoResponse.json();
   if (!geo.results || !geo.results.length) throw new Error("City not found");
   const place = geo.results[0];
-  const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code&daily=temperature_2m_max,precipitation_sum,wind_speed_10m_max&forecast_days=3&timezone=auto`;
+  const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&past_days=10&forecast_days=10&current=temperature_2m,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto`;
   const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${place.latitude}&longitude=${place.longitude}&current=us_aqi&timezone=auto`;
   const [forecastResponse, airResponse] = await Promise.all([fetch(forecastUrl), fetch(airUrl)]);
   if (!forecastResponse.ok) throw new Error("Forecast unavailable");
   const forecast = await forecastResponse.json();
   const air = airResponse.ok ? await airResponse.json() : {};
   const current = forecast.current || {};
+  setText("timezone-label", forecast.timezone || "Local time");
   return {
     name: [place.name, place.country_code].filter(Boolean).join(", "),
     latitude: place.latitude, longitude: place.longitude,
@@ -140,6 +200,50 @@ async function getLiveWeather(city) {
     weatherCode: current.weather_code ?? 0,
     dailyMax: forecast.daily?.temperature_2m_max || [],
     dailyRain: forecast.daily?.precipitation_sum || [],
+    hourly: {
+      time: forecast.hourly?.time || [], temperatures: forecast.hourly?.temperature_2m || [],
+      rain: forecast.hourly?.precipitation_probability || [], codes: forecast.hourly?.weather_code || [],
+    },
+    daily: {
+      time: forecast.daily?.time || [], max: forecast.daily?.temperature_2m_max || [],
+      min: forecast.daily?.temperature_2m_min || [], rain: forecast.daily?.precipitation_sum || [],
+      codes: forecast.daily?.weather_code || [],
+    },
+  };
+}
+
+async function useCurrentLocation() {
+  if (!navigator.geolocation) { setStatus("Location is not supported. Enter a city instead."); return; }
+  setStatus("Requesting your location permission…");
+  navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+    try {
+      weather = await getLiveWeatherByCoordinates(coords.latitude, coords.longitude);
+      renderWeather("live");
+      setStatus("Using your current location for live weather and AQI.");
+    } catch (error) { setStatus(`Could not load your location (${error.message}). Enter a city instead.`); }
+  }, () => setStatus("Location permission was not granted. Enter a city instead."));
+}
+
+async function getLiveWeatherByCoordinates(latitude, longitude) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&past_days=10&forecast_days=10&current=temperature_2m,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Weather service unavailable");
+  const forecast = await response.json();
+  const air = await (await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=us_aqi&timezone=auto`)).json();
+  return mapForecast(forecast, air, "Current location", latitude, longitude);
+}
+
+function mapForecast(forecast, air, name, latitude, longitude) {
+  const current = forecast.current || {};
+  return {
+    name, latitude, longitude, temperature: current.temperature_2m ?? 28,
+    humidity: current.relative_humidity_2m ?? 68, wind: (current.wind_speed_10m ?? 0) / 3.6,
+    precipitation: current.precipitation ?? 0, rain: (forecast.daily?.precipitation_sum || [0])[10] ?? 0,
+    aqi: air.current?.us_aqi ?? null, weatherCode: current.weather_code ?? 0,
+    dailyMax: forecast.daily?.temperature_2m_max || [],
+    dailyRain: forecast.daily?.precipitation_sum || [],
+    hourly: { time: forecast.hourly?.time || [], temperatures: forecast.hourly?.temperature_2m || [], rain: forecast.hourly?.precipitation_probability || [], codes: forecast.hourly?.weather_code || [] },
+    daily: { time: forecast.daily?.time || [], max: forecast.daily?.temperature_2m_max || [], min: forecast.daily?.temperature_2m_min || [], rain: forecast.daily?.precipitation_sum || [], codes: forecast.daily?.weather_code || [] },
   };
 }
 
@@ -185,6 +289,7 @@ if ("serviceWorker" in navigator) {
 }
 
 $("check-weather").addEventListener("click", checkWeather);
+$("use-location").addEventListener("click", useCurrentLocation);
 $("live-mode").addEventListener("change", checkWeather);
 $("activity").addEventListener("change", updateActivity);
 document.querySelectorAll("[data-preview]").forEach((button) => {
@@ -212,3 +317,4 @@ $("save-search").addEventListener("click", async () => {
 });
 renderWeather("live");
 checkWeather();
+setInterval(updateTheme, 60000);
