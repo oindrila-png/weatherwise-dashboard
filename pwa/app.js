@@ -35,12 +35,9 @@ const demoWeather = {
 };
 let weather = { ...demoWeather };
 const $ = (id) => document.getElementById(id);
-const supabaseClient = window.SUPABASE_CONFIG && window.supabase
-  ? window.supabase.createClient(
-      window.SUPABASE_CONFIG.url,
-      window.SUPABASE_CONFIG.anonKey
-    )
-  : null;
+const HISTORY_KEY = "weatherwise-weather-history";
+const CHECKLIST_KEY = "weatherwise-emergency-checklist";
+const CHALLENGE_KEY = "weatherwise-challenge";
 
 function calculateScore(activity) {
   const [minimum, maximum, maxWind, maxHumidity] = rules[activity];
@@ -68,10 +65,107 @@ function updateActivity() {
   $("best-time").textContent = bestTimes[activity] || "Check local conditions";
 }
 
+function formatTime(value) {
+  if (!value) return "Unavailable";
+  return new Date(value).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function updateInsights() {
+  const feels = weather.feelsLike ?? weather.temperature + (weather.humidity > 70 ? 2 : 0) - (weather.wind > 5 ? 1 : 0);
+  const uv = weather.uvIndex ?? null;
+  const comfort = Math.max(0, Math.min(100, Math.round(100 - Math.abs(feels - 23) * 2 - Math.max(0, weather.wind - 8) * 2 - (weather.rain >= 20 ? 15 : 0) - (weather.aqi > 100 ? 15 : 0))));
+  const rainRisk = weather.rain >= 60 ? "rain & shelter" : weather.rain >= 20 ? "a passing shower" : "dry spells";
+  const profile = $("health-mode").value;
+  const health = profile === "sensitive" && (feels >= 30 || weather.aqi > 100)
+    ? "Keep exertion light, seek shade, and consider an indoor plan."
+    : profile === "child" && (feels >= 32 || weather.rain >= 60)
+      ? "Keep outings short, pack a change of clothes, and stay close to shelter."
+      : profile === "senior" && (feels >= 30 || feels <= 12)
+        ? "Prefer a gentler window and take regular breaks in a comfortable place."
+        : "Conditions look manageable; take normal breaks and listen to your body.";
+  setText("feels-like", `${Math.round(feels)}°C`);
+  setText("uv-index", uv == null ? "Not available" : `${Math.round(uv)} (${uv >= 6 ? "high" : uv >= 3 ? "moderate" : "low"})`);
+  setText("comfort-score", `${comfort}`);
+  setText("hydration-tip", feels >= 30 || weather.humidity >= 75 ? "Drink often" : "Water nearby");
+  setText("clothing-tip", feels >= 30 ? "Light & breathable" : feels <= 16 ? "Layer up" : "Light layers");
+  setText("health-advisory", "");
+  $("health-advisory").innerHTML = `<strong>Health-aware mode</strong><span>${health}</span>`;
+  setText("daily-story", `${weather.name} is offering ${weatherLabel(weather.weatherCode).toLowerCase()} around ${Math.round(weather.temperature)}°C. Your best plan is to enjoy the ${rainRisk} and keep ${feels >= 30 ? "water and shade" : "a light layer"} close.`);
+  setText("briefing-window", bestTimes[$("activity").value] || "Flexible");
+  setText("briefing-watch", weather.aqi > 100 ? "Air quality" : weather.rain >= 20 ? "Rain chance" : feels >= 32 ? "Heat" : "Wind & sun");
+  setText("briefing-mood", comfort >= 75 ? "Easy-going" : comfort >= 50 ? "Plan lightly" : "Take it gently");
+  setText("briefing-badge", `${comfort}/100 comfort`);
+  renderPacking();
+  renderAstronomy();
+}
+
+function renderPacking() {
+  const items = ["Water bottle", weather.rain >= 20 ? "Umbrella or rain shell" : "Sunglasses", weather.temperature <= 18 ? "Warm layer" : "Breathable top", "Phone charger", "Any required medicines"];
+  $("packing-list").innerHTML = items.map((item, index) => `<label><input type="checkbox" data-pack="${index}"> ${item}</label>`).join("");
+}
+
+function renderAstronomy() {
+  const sunrise = weather.sunrise?.[0];
+  const sunset = weather.sunset?.[0];
+  setText("sunrise", formatTime(sunrise));
+  setText("sunset", formatTime(sunset));
+  setText("golden-hour", sunrise && sunset ? `${formatTime(new Date(new Date(sunset).getTime() - 60 * 60 * 1000))}–${formatTime(sunset)}` : "Unavailable");
+  const phase = weather.moonPhase || "Moon data unavailable";
+  setText("moon-phase", phase);
+  setText("astronomy-date", sunrise ? "Today" : "Fallback");
+}
+
+function renderEmergencyChecklist() {
+  const defaults = ["Check official weather alerts", "Charge phone and carry a power bank", "Pack water and essential medicines", "Share your route with someone", "Know the nearest safe shelter"];
+  const saved = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || "[]");
+  $("emergency-list").innerHTML = defaults.map((item, index) => `<label><input type="checkbox" data-emergency="${index}" ${saved[index] ? "checked" : ""}> ${item}</label>`).join("");
+  $("emergency-list").querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
+    const state = [...$("emergency-list").querySelectorAll("input")].map((box) => box.checked);
+    localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+  }));
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  $("weather-history").innerHTML = history.length ? `<p class="eyebrow">Recent weather history</p>${history.slice().reverse().map((item) => `<article class="history-note"><time>${new Date(item.date).toLocaleString()} · ${item.city}</time><span>${Math.round(item.temperature)}°C · ${item.condition} · comfort ${item.comfort}/100</span></article>`).join("")}` : "";
+}
+
+function renderChallenge() {
+  const options = [
+    { label: "Take water and choose a cooler time", answer: "warm" },
+    { label: "Wear a heavy winter coat", answer: "cold" },
+    { label: "Expect a snowstorm", answer: "snow" },
+  ];
+  const answer = weather.temperature >= 30 ? "warm" : weather.temperature <= 16 ? "cold" : "mild";
+  const prompt = answer === "warm" ? "It feels warm today. What is the wisest plan?" : answer === "cold" ? "It feels cool today. What is the wisest plan?" : "The temperature is comfortable today. What is a good plan?";
+  $("challenge-question").textContent = `${prompt} (${Math.round(weather.temperature)}°C)`;
+  const choices = answer === "mild" ? [
+    { label: "Enjoy normal outdoor plans", answer: "mild" },
+    ...options.slice(0, 2),
+  ] : options;
+  $("challenge-options").innerHTML = choices.map((choice) => `<button type="button" data-challenge-answer="${choice.answer}">${choice.label}</button>`).join("");
+  const state = JSON.parse(localStorage.getItem(CHALLENGE_KEY) || '{"date":"","score":0,"streak":0,"best":0}');
+  $("challenge-score").textContent = `${state.score} points`;
+  $("challenge-streak").textContent = `${state.streak} day${state.streak === 1 ? "" : "s"}`;
+  $("challenge-best").textContent = state.best;
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.date === today) {
+    $("challenge-feedback").textContent = "Today's challenge is complete. Come back tomorrow for a new one!";
+    $("challenge-options").querySelectorAll("button").forEach((button) => { button.disabled = true; });
+  } else {
+    $("challenge-options").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+      const correct = button.dataset.challengeAnswer === answer;
+      const nextState = { date: today, score: state.score + (correct ? 10 : 0), streak: state.streak + 1, best: Math.max(state.best, state.score + (correct ? 10 : 0)) };
+      localStorage.setItem(CHALLENGE_KEY, JSON.stringify(nextState));
+      $("challenge-feedback").textContent = correct ? "Great thinking! You earned 10 points." : `Good try! The best answer was: ${choices.find((choice) => choice.answer === answer).label}.`;
+      renderChallenge();
+    }));
+  }
+}
+
 function setText(id, value) { $(id).textContent = value; }
 function setStatus(value) {
   setText("status", value);
-  setText("save-status", value);
 }
 
 function weatherLabel(code) {
@@ -125,6 +219,12 @@ function answerQuestion(question) {
   const rainToday = Number(weather.rain || 0);
   const activity = $("activity").value;
   const score = calculateScore(activity);
+  if (text.includes("pack") || text.includes("bring")) return `Pack ${weather.temperature >= 30 ? "breathable clothes and water" : "a light layer"}, ${weather.rain >= 20 ? "an umbrella or rain shell" : "sunglasses"}, and any medicines you need.`;
+  if (text.includes("golden") || text.includes("sunset") || text.includes("sunrise")) return `Sunrise is ${formatTime(weather.sunrise?.[0])} and sunset is ${formatTime(weather.sunset?.[0])}. Golden hour begins about an hour before sunset.`;
+  if (text.includes("health") || text.includes("sensitive")) return $("health-advisory").querySelector("span").textContent;
+  if (text.includes("travel") || text.includes("destination") || text.includes("depart")) return `${$("departure-guidance").textContent}. ${$("destination-weather").textContent}.`;
+  if (text.includes("emergency") || text.includes("safe")) return "Use the emergency checklist, check official local alerts, and do not travel through flooded roads.";
+  if (text.includes("challenge") || text.includes("quiz") || text.includes("game")) return "Today's Skyla challenge is on the page. Choose the answer that best matches the current weather to earn points.";
   if (text.includes("rain") || text.includes("umbrella")) {
     return rainToday >= 10 || weather.rain >= 60
       ? `Rain is a real possibility in ${weather.name}. Carry an umbrella and avoid low-lying roads.`
@@ -173,7 +273,9 @@ function renderHourly() {
     const index = startIndex + offset;
     const code = weather.hourly.codes[index];
     const icon = code >= 95 ? "⛈️" : [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) ? "🌧️" : [2, 3].includes(code) ? "☁️" : "☀️";
-    return `<div class="hour-item"><strong>${formatHour(time)}</strong><span>${icon}</span><span>${Math.round(weather.hourly.temperatures[index])}°</span><small>${Math.round(weather.hourly.rain[index] || 0)}% rain</small></div>`;
+    const label = offset === 0 ? "Now" : formatHour(time);
+    const rain = Math.round(weather.hourly.rain[index] || 0);
+    return `<div class="hour-item ${offset === 0 ? "current-hour" : ""}"><strong>${label}</strong><span class="weather-icon" aria-hidden="true">${icon}</span><b>${Math.round(weather.hourly.temperatures[index])}°C</b><small>${rain}% chance of rain</small></div>`;
   }).join("");
 }
 
@@ -185,10 +287,15 @@ function renderDaily() {
   }
   list.innerHTML = weather.daily.time.map((date, index) => {
     const past = index < 10;
+    const today = index === 10;
     const code = weather.daily.codes[index];
     const icon = code >= 95 ? "⛈️" : [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) ? "🌧️" : [2, 3].includes(code) ? "☁️" : "☀️";
-    return `<div class="day-item ${past ? "past" : "future"}"><span>${new Date(`${date}T12:00:00`).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span><b>${past ? "Past" : "Forecast"}</b><span>${icon}</span><span>${Math.round(weather.daily.max[index])}° / ${Math.round(weather.daily.min[index])}°</span><small>${Math.round(weather.daily.rain[index] || 0)} mm</small></div>`;
+    const dayLabel = today ? "Today" : new Date(`${date}T12:00:00`).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    const stateLabel = today ? "Now" : past ? "Past" : "Next";
+    return `<div class="day-item ${past ? "past" : today ? "today" : "future"}"><span class="day-name">${dayLabel}</span><b>${stateLabel}</b><span class="weather-icon" aria-hidden="true">${icon}</span><strong>${Math.round(weather.daily.max[index])}° / ${Math.round(weather.daily.min[index])}°C</strong><small>${Math.round(weather.daily.rain[index] || 0)} mm rain</small></div>`;
   }).join("");
+  const todayCard = list.querySelector(".today");
+  if (todayCard) window.requestAnimationFrame(() => todayCard.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" }));
 }
 
 function previewWeather(kind) {
@@ -220,6 +327,8 @@ function updateAlerts() {
 function renderWeather(mode = "live") {
   setText("location", weather.name);
   setText("temperature", Math.round(weather.temperature));
+  const feelsLike = weather.feelsLike ?? weather.temperature + (weather.humidity > 70 ? 2 : 0) - (weather.wind > 5 ? 1 : 0);
+  setText("feels-like-top", `${Math.round(feelsLike)}°C`);
   setText("humidity", `${Math.round(weather.humidity)}%`);
   setText("wind", `${Number(weather.wind).toFixed(1)} m/s`);
   setText("rain", weather.rain >= 60 ? "High" : weather.rain >= 20 ? "Medium" : "Low");
@@ -232,7 +341,37 @@ function renderWeather(mode = "live") {
   updateActivity();
   renderHourly();
   renderDaily();
+  updateInsights();
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  const comfort = Math.max(0, Math.min(100, Math.round(100 - Math.abs((weather.feelsLike ?? weather.temperature) - 23) * 2)));
+  history.push({ date: new Date().toISOString(), city: weather.name, temperature: weather.temperature, condition: weatherLabel(weather.weatherCode), comfort });
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-20)));
+  renderHistory();
+  renderChallenge();
   updateTheme();
+}
+
+async function planDestination() {
+  const destination = $("destination").value.trim();
+  if (!destination) return;
+  $("travel-result").textContent = "Looking up destination weather…";
+  try {
+    const placeResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=en&format=json`);
+    if (!placeResponse.ok) throw new Error("Destination lookup failed");
+    const result = await placeResponse.json();
+    if (!result.results?.length) throw new Error("Destination not found");
+    const place = result.results[0];
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,weather_code,precipitation&hourly=precipitation_probability&timezone=auto`);
+    if (!response.ok) throw new Error("Destination forecast unavailable");
+    const forecast = await response.json();
+    const current = forecast.current || {};
+    const rainChance = Math.max(...(forecast.hourly?.precipitation_probability || [0]).slice(0, 8));
+    setText("destination-weather", `${Math.round(current.temperature_2m ?? 0)}°C · ${weatherLabel(current.weather_code)} · ${rainChance}% rain`);
+    setText("departure-guidance", weather.rain >= 20 ? "Leave extra time for weather" : "Current departure looks smooth");
+    $("travel-result").textContent = `Planning ${[place.name, place.country_code].filter(Boolean).join(", ")}. ${rainChance >= 60 ? "Pack rain protection." : "Conditions look manageable."}`;
+  } catch (error) {
+    $("travel-result").textContent = `Travel lookup unavailable (${error.message}). You can still use the local plan.`;
+  }
 }
 
 async function getLiveWeather(city) {
@@ -241,7 +380,7 @@ async function getLiveWeather(city) {
   const geo = await geoResponse.json();
   if (!geo.results || !geo.results.length) throw new Error("City not found");
   const place = geo.results[0];
-  const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&past_days=10&forecast_days=10&current=temperature_2m,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto`;
+  const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&past_days=10&forecast_days=10&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code,uv_index&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max,sunrise,sunset,uv_index_max&timezone=auto`;
   const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${place.latitude}&longitude=${place.longitude}&current=us_aqi&timezone=auto`;
   const [forecastResponse, airResponse] = await Promise.all([fetch(forecastUrl), fetch(airUrl)]);
   if (!forecastResponse.ok) throw new Error("Forecast unavailable");
@@ -253,12 +392,17 @@ async function getLiveWeather(city) {
     name: [place.name, place.country_code].filter(Boolean).join(", "),
     latitude: place.latitude, longitude: place.longitude,
     temperature: current.temperature_2m ?? demoWeather.temperature,
+    feelsLike: current.apparent_temperature,
     humidity: current.relative_humidity_2m ?? demoWeather.humidity,
     wind: (current.wind_speed_10m ?? 0) / 3.6,
     precipitation: current.precipitation ?? 0,
     rain: (forecast.daily?.precipitation_sum || [0])[0] ?? 0,
     aqi: air.current?.us_aqi ?? null,
     weatherCode: current.weather_code ?? 0,
+    uvIndex: current.uv_index,
+    sunrise: forecast.daily?.sunrise || [],
+    sunset: forecast.daily?.sunset || [],
+    moonPhase: "Use the clear sky to spot the moon",
     dailyMax: forecast.daily?.temperature_2m_max || [],
     dailyRain: forecast.daily?.precipitation_sum || [],
     hourly: {
@@ -286,7 +430,7 @@ async function useCurrentLocation() {
 }
 
 async function getLiveWeatherByCoordinates(latitude, longitude) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&past_days=10&forecast_days=10&current=temperature_2m,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&past_days=10&forecast_days=10&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,wind_speed_10m,weather_code,uv_index&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max,sunrise,sunset,uv_index_max&timezone=auto`;
   const response = await fetch(url);
   if (!response.ok) throw new Error("Weather service unavailable");
   const forecast = await response.json();
@@ -297,10 +441,12 @@ async function getLiveWeatherByCoordinates(latitude, longitude) {
 function mapForecast(forecast, air, name, latitude, longitude) {
   const current = forecast.current || {};
   return {
-    name, latitude, longitude, temperature: current.temperature_2m ?? 28,
+    name, latitude, longitude, temperature: current.temperature_2m ?? 28, feelsLike: current.apparent_temperature,
     humidity: current.relative_humidity_2m ?? 68, wind: (current.wind_speed_10m ?? 0) / 3.6,
     precipitation: current.precipitation ?? 0, rain: (forecast.daily?.precipitation_sum || [0])[10] ?? 0,
-    aqi: air.current?.us_aqi ?? null, weatherCode: current.weather_code ?? 0,
+    aqi: air.current?.us_aqi ?? null, weatherCode: current.weather_code ?? 0, uvIndex: current.uv_index,
+    sunrise: forecast.daily?.sunrise || [], sunset: forecast.daily?.sunset || [],
+    moonPhase: "Use the clear sky to spot the moon",
     dailyMax: forecast.daily?.temperature_2m_max || [],
     dailyRain: forecast.daily?.precipitation_sum || [],
     hourly: { time: forecast.hourly?.time || [], temperatures: forecast.hourly?.temperature_2m || [], rain: forecast.hourly?.precipitation_probability || [], codes: forecast.hourly?.weather_code || [] },
@@ -353,6 +499,23 @@ $("check-weather").addEventListener("click", checkWeather);
 $("use-location").addEventListener("click", useCurrentLocation);
 $("live-mode").addEventListener("change", checkWeather);
 $("activity").addEventListener("change", updateActivity);
+$("health-mode").addEventListener("change", updateInsights);
+$("check-destination").addEventListener("click", planDestination);
+const skylaToggle = $("skyla-toggle");
+const skylaPanel = $("skyla-panel");
+skylaToggle.addEventListener("click", () => {
+  const isOpen = skylaToggle.getAttribute("aria-expanded") === "true";
+  skylaToggle.setAttribute("aria-expanded", String(!isOpen));
+  skylaPanel.hidden = isOpen;
+  skylaToggle.closest(".assistant-card").classList.toggle("is-open", !isOpen);
+  if (!isOpen) $("assistant-input").focus();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && skylaToggle.getAttribute("aria-expanded") === "true") {
+    skylaToggle.setAttribute("aria-expanded", "false");
+    skylaPanel.hidden = true;
+  }
+});
 document.querySelectorAll("[data-question]").forEach((button) => {
   button.addEventListener("click", () => askSkyla(button.dataset.question));
 });
@@ -365,26 +528,9 @@ $("assistant-form").addEventListener("submit", (event) => {
 document.querySelectorAll("[data-preview]").forEach((button) => {
   button.addEventListener("click", () => previewWeather(button.dataset.preview));
 });
-$("save-search").addEventListener("click", async () => {
-  if (!supabaseClient) {
-    setStatus("Database is not connected yet. Complete the Supabase setup first.");
-    return;
-  }
-  const activity = $("activity").value;
-  const result = calculateScore(activity);
-  const { error } = await supabaseClient.from("weather_plans").insert({
-    city: $("city").value.trim(),
-    activity,
-    temperature_c: weather.temperature,
-    humidity_pct: weather.humidity,
-    wind_speed_mps: weather.wind,
-    suitability_score: result.score,
-    rating: result.rating,
-  });
-  setStatus(error
-    ? `Could not save plan: ${error.message}`
-    : "Activity plan saved successfully.");
-});
+renderEmergencyChecklist();
+renderHistory();
+renderChallenge();
 renderWeather("live");
 checkWeather();
 setInterval(updateTheme, 60000);

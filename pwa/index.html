@@ -57,7 +57,7 @@
           <h1 id="location">Chennai</h1>
           <p id="personality">Comfortable outdoor day</p>
         </div>
-        <div class="temperature"><span id="temperature">28</span><sup>°C</sup></div>
+        <div class="temperature-stack"><div class="temperature"><span id="temperature">28</span><sup>°C</sup></div><div class="feels-like-bubble"><span>Feels like</span><strong id="feels-like-top">—</strong></div></div>
         <div class="metrics">
           <span>Humidity <strong id="humidity">68%</strong></span>
           <span>Wind <strong id="wind">3.2 m/s</strong></span>
@@ -66,26 +66,39 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card forecast-card hourly-card">
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">Hourly outlook</p>
-            <h2>Next 24 hours</h2>
-          </div>
+          <div><p class="eyebrow">Easy-to-read timeline</p><h2>Next 24 hours</h2><p class="card-hint">See how the weather changes hour by hour.</p></div>
           <span id="timezone-label" class="pill">Local time</span>
         </div>
         <div id="hourly-list" class="hourly-list" aria-live="polite"></div>
       </section>
 
-      <section class="card">
+      <section class="card forecast-card daily-card">
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">Ten-day timeline</p>
-            <h2>Past 10 + next 10 days</h2>
-          </div>
-          <span class="pill">History & forecast</span>
+          <div><p class="eyebrow">Look back, plan ahead</p><h2>Past 10 + next 10 days</h2><p class="card-hint">Today starts in the middle. Scroll left for past days or right for days ahead.</p></div>
+          <span class="pill">20-day view</span>
         </div>
-        <div id="daily-list" class="daily-list" aria-live="polite"></div>
+        <div class="forecast-legend"><span><i class="legend-dot past-dot"></i>Past</span><span><i class="legend-dot today-dot"></i>Today</span><span><i class="legend-dot future-dot"></i>Next days</span></div>
+        <div id="daily-list" class="daily-list" aria-label="Scrollable 20-day weather timeline" tabindex="0" aria-live="polite"></div>
+      </section>
+
+      <section class="card briefing-card">
+        <div class="section-heading"><div><p class="eyebrow">Your weather story</p><h2>Daily briefing</h2></div><span id="briefing-badge" class="pill">Ready</span></div>
+        <p id="daily-story">Loading a friendly read on your day…</p>
+        <div class="insight-grid"><div><span class="eyebrow">Best window</span><strong id="briefing-window">—</strong></div><div><span class="eyebrow">Watch for</span><strong id="briefing-watch">—</strong></div><div><span class="eyebrow">Mood</span><strong id="briefing-mood">—</strong></div></div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><div><p class="eyebrow">Personal comfort</p><h2>Comfort score</h2></div><div id="comfort-score" class="mini-score">—</div></div>
+        <div class="stat-grid"><div><span>Feels like</span><strong id="feels-like">—</strong></div><div><span>UV index</span><strong id="uv-index">—</strong></div><div><span>Hydration</span><strong id="hydration-tip">—</strong></div><div><span>Clothing</span><strong id="clothing-tip">—</strong></div></div>
+        <div id="health-advisory" class="advisory"><strong>Health-aware mode</strong><span>Choose a profile for more tailored guidance.</span></div>
+        <label for="health-mode">Health profile</label><select id="health-mode"><option value="general">General guidance</option><option value="sensitive">Heat / respiratory sensitive</option><option value="child">Child-friendly planning</option><option value="senior">Older adult planning</option></select>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><div><p class="eyebrow">Daylight & sky</p><h2>Sun, moon & golden hour</h2></div><span id="astronomy-date" class="pill">Today</span></div>
+        <div class="stat-grid astronomy-grid"><div><span>Sunrise</span><strong id="sunrise">—</strong></div><div><span>Sunset</span><strong id="sunset">—</strong></div><div><span>Golden hour</span><strong id="golden-hour">—</strong></div><div><span>Moon</span><strong id="moon-phase">—</strong></div></div>
       </section>
 
       <section class="alerts-grid" aria-label="Weather alerts">
@@ -121,23 +134,38 @@
           </div>
         </div>
         <p><strong>Best time:</strong> <span id="best-time">07:00–10:00</span></p>
-        <button id="save-search" class="secondary" type="button">Save this plan</button>
-        <p id="save-status" class="status" role="status"></p>
       </section>
 
-      <section class="card assistant-card">
+      <section class="card challenge-card">
+        <div class="section-heading"><div><p class="eyebrow">Play the forecast</p><h2>Skyla's daily challenge</h2></div><span id="challenge-score" class="pill">0 points</span></div>
+        <p id="challenge-question">Loading today's weather puzzle…</p>
+        <div id="challenge-options" class="challenge-options"></div>
+        <p id="challenge-feedback" class="status" role="status">Choose an answer to earn points. One challenge per day.</p>
+        <div class="challenge-stats"><span>Streak <strong id="challenge-streak">0 days</strong></span><span>Best score <strong id="challenge-best">0</strong></span></div>
+        <div id="weather-history" class="recent-history"></div>
+      </section>
+
+      <section class="actions">
+        <button id="install" class="secondary" type="button" hidden>Install WeatherWise</button>
+        <a class="button secondary" href="https://weatherwise-dashboard-susz9m3xtfcejqjbxuvbzt.streamlit.app/" target="_blank" rel="noreferrer">Open full dashboard</a>
+      </section>
+
+      <section class="card assistant-card" aria-label="Skyla weather assistant">
+        <button id="skyla-toggle" class="skyla-toggle" type="button" aria-expanded="false" aria-controls="skyla-panel">
+          <span class="skyla-orb" aria-hidden="true">✦</span><span><strong>Ask Skyla</strong><small>Your tiny weather guide</small></span><span class="skyla-chevron" aria-hidden="true">⌃</span>
+        </button>
+        <div id="skyla-panel" class="skyla-panel" hidden>
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">WeatherWise intelligence</p>
-            <h2>Ask Skyla</h2>
-          </div>
-          <span class="ai-badge">AI guide</span>
+          <div><p class="eyebrow">WeatherWise intelligence</p><h2>Skyla answers</h2></div>
+          <span class="ai-badge">Local AI guide</span>
         </div>
-        <p class="assistant-intro">Ask about this weather, activities, clothing, rain, air quality, or the best time to go out.</p>
+        <p class="assistant-intro">Ask about briefings, comfort, packing, travel, health, daylight, emergencies, or today's challenge.</p>
         <div class="assistant-suggestions" aria-label="Suggested questions">
           <button type="button" data-question="Can I go for a walk now?">Walk now?</button>
           <button type="button" data-question="What should I wear?">What should I wear?</button>
           <button type="button" data-question="Will it rain today?">Rain today?</button>
+          <button type="button" data-question="What should I pack?">Pack for me</button>
+          <button type="button" data-question="What is the golden hour?">Golden hour?</button>
         </div>
         <div id="assistant-messages" class="assistant-messages" aria-live="polite">
           <div class="assistant-message assistant"><strong>Skyla</strong><span>Hi! I can explain the current weather and help plan your day.</span></div>
@@ -147,15 +175,27 @@
           <button type="submit">Ask</button>
         </form>
         <p class="assistant-note">Skyla uses your loaded forecast locally in this app; it is not an emergency service.</p>
+        </div>
       </section>
 
-      <section class="actions">
-        <button id="install" class="secondary" type="button" hidden>Install WeatherWise</button>
-        <a class="button secondary" href="https://weatherwise-dashboard-susz9m3xtfcejqjbxuvbzt.streamlit.app/" target="_blank" rel="noreferrer">Open full dashboard</a>
+      <section class="card travel-card">
+        <div class="section-heading"><div><p class="eyebrow">Go farther</p><h2>Travel planner</h2></div><span class="pill">Open-Meteo</span></div>
+        <div class="search-row"><input id="destination" type="text" placeholder="Destination city" autocomplete="address-level2"><button id="check-destination" type="button">Plan trip</button></div>
+        <p id="travel-result" class="status">Enter a city to compare its current conditions and travel guidance.</p>
+        <div class="insight-grid"><div><span class="eyebrow">Departure</span><strong id="departure-guidance">—</strong></div><div><span class="eyebrow">Destination</span><strong id="destination-weather">—</strong></div></div>
+      </section>
+
+      <section class="card roam-card">
+        <div class="section-heading"><div><p class="eyebrow">Ready to roam</p><h2>Smart packing list</h2></div><span class="pill">Live suggestions</span></div>
+        <div id="packing-list" class="check-list"></div>
+      </section>
+
+      <section class="card emergency-card">
+        <div class="section-heading"><div><p class="eyebrow">Be prepared</p><h2>Emergency readiness</h2></div><span class="pill">Personal checklist</span></div>
+        <p class="status">A quick offline checklist for changing conditions. Follow official local alerts first.</p>
+        <div id="emergency-list" class="check-list"></div>
       </section>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
   </body>
 </html>

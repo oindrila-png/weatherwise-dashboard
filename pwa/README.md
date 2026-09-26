@@ -31,19 +31,25 @@ activities and recommends a useful time window for each.
 
 The **Ask Skyla** assistant is a privacy-friendly local weather guide. It
 answers common questions about the loaded temperature, rain risk, clothing,
-AQI, and activity suitability without exposing an AI or weather-service secret
-in browser code. Its answers are advisory and should not replace official
-emergency guidance.
+AQI, activity suitability, comfort, packing, travel, daylight, health-aware
+planning, emergency readiness, and the daily weather challenge without exposing an AI or
+weather-service secret in browser code. Its answers are advisory and should
+not replace official emergency guidance.
 
-## Connect Supabase
+The enhanced PWA also includes a daily weather story, feels-like/UV comfort
+scoring, destination lookup, smart packing suggestions, health profiles,
+sunrise/sunset/golden-hour guidance, an offline emergency checklist, a
+family-friendly daily weather challenge, and private localStorage weather
+history. Open-Meteo sunrise/sunset and UV fields
+are used when available; the astronomy panel clearly falls back when they are
+not returned.
 
-1. In Supabase, open **SQL Editor**, paste `supabase-schema.sql`, and click
-   **Run**.
-2. Copy `supabase-config.example.js` to `supabase-config.js`.
-3. In Supabase, open **Project Settings -> API** and copy the **Project URL**
-   and the publishable/anon key into `supabase-config.js`.
-4. Never use or paste the `service_role` key into this folder.
-5. Restart the local server and click **Save this plan** in the PWA.
+## Privacy and storage
+
+This PWA does not use a database or require an account. Weather data comes from
+the public Open-Meteo APIs, while the daily challenge, checklist, and recent
+weather history use browser localStorage. No Supabase credentials or paid APIs
+are required.
 
 ## Publish free
 
