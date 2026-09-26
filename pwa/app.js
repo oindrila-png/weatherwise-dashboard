@@ -514,6 +514,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && skylaToggle.getAttribute("aria-expanded") === "true") {
     skylaToggle.setAttribute("aria-expanded", "false");
     skylaPanel.hidden = true;
+    skylaToggle.closest(".assistant-card").classList.remove("is-open");
   }
 });
 document.querySelectorAll("[data-question]").forEach((button) => {

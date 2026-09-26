@@ -1,4 +1,4 @@
-const CACHE_NAME = "weatherwise-pwa-v6";
+const CACHE_NAME = "weatherwise-pwa-v7";
 const APP_FILES = [
   "./",
   "./index.html",
